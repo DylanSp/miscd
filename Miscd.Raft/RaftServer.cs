@@ -44,26 +44,31 @@ namespace Miscd.Raft
 
         #region State machine states
 
+        // TODO - add timer, TimerElapsedEvent, handler(s) for that event
+
         [Start]
         [OnEntry(nameof(BecomeFollower))]
         [OnEventDoAction(typeof(VoteRequestEvent), nameof(RespondToVoteRequest))]
-        [OnEventDoAction(typeof(VoteResponseEvent), nameof(UpdateLocalState))]
+        [OnEventDoAction(typeof(VoteResponseEvent), nameof(UpdateLocalState))] // not candidate, so don't transition states, just update local state
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsFollower))]
-        [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))]
+        [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
+        [OnEventDoAction(typeof(ClientRequestEvent), nameof(RedirectClientToLeader))]
         private class Follower : State { }
         
         [OnEntry(nameof(BecomeCandidate))]
         [OnEventDoAction(typeof(VoteRequestEvent), nameof(RespondToVoteRequest))]
         [OnEventDoAction(typeof(VoteResponseEvent), nameof(AcceptVoteResponse))]
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsCandidate))]
-        [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))]
+        [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
+        [IgnoreEvents(typeof(ClientRequestEvent))]  // don't have a leader to redirect client to; ignore and have client retry
         private class Candidate : State { }
         
         [OnEntry(nameof(BecomeLeader))]
         [OnEventDoAction(typeof(VoteRequestEvent), nameof(RespondToVoteRequest))]
-        [OnEventDoAction(typeof(VoteResponseEvent), nameof(UpdateLocalState))]
-        [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(UpdateLocalState))]
+        [OnEventDoAction(typeof(VoteResponseEvent), nameof(UpdateLocalState))] // not candidate, so don't transition states, just update local state
+        [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(UpdateLocalState))] // TODO - is this correct? do I need to resend event and accept entries as follower?
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(AcceptAppendEntriesResponse))]
+        [OnEventDoAction(typeof(ClientRequestEvent), nameof(RespondToClientRequest))]
         private class Leader : State { }
 
         #endregion
@@ -85,32 +90,51 @@ namespace Miscd.Raft
             throw new NotImplementedException();
         }
 
+        // follow rules for RequestVote RPC -> Receiver implementation
         private void RespondToVoteRequest(Event e)
         {
             throw new NotImplementedException();
         }
 
+        // follow rules for Rules for Servers -> Candidates
         private void AcceptVoteResponse(Event e)
         {
             throw new NotImplementedException();
         }
 
+        // follow Rules for Servers -> All Servers
+        // * If commitIndex > lastApplied: increment lastApplied, apply log[lastApplied] to state machine
+        // * If RPC request or response contains term T > currentTerm: set currentTerm = T, convert to follower(§5.1)
         private void UpdateLocalState(Event e)
         {
             throw new NotImplementedException();
         }
 
+        // follow Rules for Servers -> All Servers/Followers, rules for AppendEntries RPC -> Receiver implementation
         private void AcceptEntriesAsFollower(Event e)
         {
             throw new NotImplementedException();
         }
 
+        // follow Rules for Servers -> All Servers/Candidates, rules for AppendEntries RPC -> Receiver implementation
         private void AcceptEntriesAsCandidate(Event e)
         {
             throw new NotImplementedException();
         }
 
+        // follow Rules for Servers -> All Servers/Leaders
         private void AcceptAppendEntriesResponse(Event e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RedirectClientToLeader(Event e)
+        {
+            throw new NotImplementedException();
+        }
+
+        // follow Rules for Servers -> Leaders (bullet 2)
+        private void RespondToClientRequest(Event e)
         {
             throw new NotImplementedException();
         }
