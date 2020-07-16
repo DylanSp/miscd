@@ -17,4 +17,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Miscd.Raft\Miscd.Raft.csproj" />
+  </ItemGroup>
+
 </Project>
