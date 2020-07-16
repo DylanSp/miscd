@@ -3,6 +3,7 @@ using Microsoft.Coyote.Actors;
 using Miscd.Raft.Events;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Miscd.Raft
 {
@@ -41,6 +42,17 @@ namespace Miscd.Raft
 
         #endregion
 
+        #region Public properties (for specification monitors)
+
+        public ReadOnlyCollection<LogEntry> ReadOnlyLog
+        {
+            get
+            {
+                return Log.AsReadOnly();
+            }
+        }
+
+        #endregion
 
         #region State machine states
 
