@@ -54,6 +54,14 @@ namespace Miscd.Raft
 
         #endregion
 
+        #region Callbacks (assigned by ServerOrchestrator)
+
+        public Action SendAppendEntriesAction { get; set; } = () => { };
+
+        public Action SendVoteRequestAction { get; set; } = () => { };
+
+        #endregion
+
         #region State machine states
 
         // TODO - add timer, TimerElapsedEvent, handler(s) for that event
