@@ -54,6 +54,11 @@ namespace Miscd.Raft
 
         #endregion
 
+        // TODO - may not need these. create TaskCompletionSource<ClientResponseEvent>(), awaited .Task of that will yield event,
+        // ServerOrchestrator uses that to extract response from Raft cluster
+        // 
+        // if I do need these to send events across network, initialize them by passing them as part of event in ServerOrchestrator's runtime.CreateActor call,
+        // don't have a reference to the RaftServer object to assign them 
         #region Callbacks (assigned by ServerOrchestrator)
 
         public Action SendAppendEntriesAction { get; set; } = () => { };
