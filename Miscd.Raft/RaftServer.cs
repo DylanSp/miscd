@@ -78,6 +78,7 @@ namespace Miscd.Raft
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsFollower))]
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
         [OnEventDoAction(typeof(RequestFromClientEvent), nameof(RedirectClientToLeader))]
+        [IgnoreEvents(typeof(RespondToClientEvent))]
         private class Follower : State { }
         
         [OnEntry(nameof(BecomeCandidate))]
@@ -85,7 +86,7 @@ namespace Miscd.Raft
         [OnEventDoAction(typeof(VoteResponseEvent), nameof(AcceptVoteResponse))]
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsCandidate))]
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
-        [IgnoreEvents(typeof(RequestFromClientEvent))]  // don't have a leader to redirect client to; ignore and have client retry
+        [IgnoreEvents(typeof(RequestFromClientEvent), typeof(RespondToClientEvent))]  // don't have a leader to redirect client to; ignore and have client retry
         private class Candidate : State { }
         
         [OnEntry(nameof(BecomeLeader))]
@@ -94,6 +95,7 @@ namespace Miscd.Raft
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(UpdateLocalState))] // TODO - is this correct? do I need to resend event and accept entries as follower?
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(AcceptAppendEntriesResponse))]
         [OnEventDoAction(typeof(RequestFromClientEvent), nameof(RespondToClientRequest))]
+        [IgnoreEvents(typeof(RespondToClientEvent))]
         private class Leader : State { }
 
         #endregion

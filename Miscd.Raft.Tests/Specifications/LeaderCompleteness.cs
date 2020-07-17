@@ -15,6 +15,7 @@ namespace Miscd.Raft.Tests.Specifications
             typeof(AppendEntriesRequestEvent),
             typeof(AppendEntriesResponseEvent),
             typeof(RequestFromClientEvent),
+            typeof(RespondToClientEvent),
             typeof(VoteRequestEvent),
             typeof(VoteResponseEvent)
         )]
