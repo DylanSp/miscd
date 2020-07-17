@@ -77,7 +77,7 @@ namespace Miscd.Raft
         [OnEventDoAction(typeof(VoteResponseEvent), nameof(UpdateLocalState))] // not candidate, so don't transition states, just update local state
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsFollower))]
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
-        [OnEventDoAction(typeof(ClientRequestEvent), nameof(RedirectClientToLeader))]
+        [OnEventDoAction(typeof(RequestFromClientEvent), nameof(RedirectClientToLeader))]
         private class Follower : State { }
         
         [OnEntry(nameof(BecomeCandidate))]
@@ -85,7 +85,7 @@ namespace Miscd.Raft
         [OnEventDoAction(typeof(VoteResponseEvent), nameof(AcceptVoteResponse))]
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsCandidate))]
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
-        [IgnoreEvents(typeof(ClientRequestEvent))]  // don't have a leader to redirect client to; ignore and have client retry
+        [IgnoreEvents(typeof(RequestFromClientEvent))]  // don't have a leader to redirect client to; ignore and have client retry
         private class Candidate : State { }
         
         [OnEntry(nameof(BecomeLeader))]
@@ -93,7 +93,7 @@ namespace Miscd.Raft
         [OnEventDoAction(typeof(VoteResponseEvent), nameof(UpdateLocalState))] // not candidate, so don't transition states, just update local state
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(UpdateLocalState))] // TODO - is this correct? do I need to resend event and accept entries as follower?
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(AcceptAppendEntriesResponse))]
-        [OnEventDoAction(typeof(ClientRequestEvent), nameof(RespondToClientRequest))]
+        [OnEventDoAction(typeof(RequestFromClientEvent), nameof(RespondToClientRequest))]
         private class Leader : State { }
 
         #endregion

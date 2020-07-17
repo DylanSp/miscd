@@ -2,7 +2,7 @@
 
 namespace Miscd.Raft.Events
 {
-    public class ClientRequestEvent : Event
+    public class RequestFromClientEvent : Event
     {
     }
 }

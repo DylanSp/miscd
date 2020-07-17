@@ -14,7 +14,7 @@ namespace Miscd.Raft.Tests.Specifications
         [IgnoreEvents(
             typeof(AppendEntriesRequestEvent),
             typeof(AppendEntriesResponseEvent),
-            typeof(ClientRequestEvent),
+            typeof(RequestFromClientEvent),
             typeof(VoteRequestEvent),
             typeof(VoteResponseEvent)
         )]
