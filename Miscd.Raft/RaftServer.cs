@@ -44,7 +44,7 @@ namespace Miscd.Raft
 
         #region Public properties (for specification monitors)
 
-        public ReadOnlyCollection<LogEntry> ReadOnlyLog
+        public IReadOnlyList<LogEntry> ReadOnlyLog
         {
             get
             {
