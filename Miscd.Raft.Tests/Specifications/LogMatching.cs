@@ -44,7 +44,7 @@ namespace Miscd.Raft.Tests.Specifications
 
             // check property
             var otherServers = ClusterLogs.Logs.Keys
-                .Where(serverId => !logEntryApplication.ServerId.Equals(serverId));
+                .Where(serverId => logEntryApplication.ServerId != serverId));
             foreach (var otherServer in otherServers)
             {
                 if (ClusterLogs.Logs[otherServer].Contains(logEntryApplication.Entry))

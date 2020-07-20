@@ -31,7 +31,7 @@ namespace Miscd.Raft.Tests.Specifications
         {
             var election = e as LeaderElectedEvent;
 
-            if (Elections.ContainsKey(election.Term) && !Elections[election.Term].Equals(election.LeaderId))    // TODO convert to !=
+            if (Elections.ContainsKey(election.Term) && Elections[election.Term] != election.LeaderId)
             {
                 Assert(false);
             }

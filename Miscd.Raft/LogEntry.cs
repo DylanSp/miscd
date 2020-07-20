@@ -1,5 +1,6 @@
 ﻿namespace Miscd.Raft
 {
+    // TODO - implement == and != operators
     public readonly struct LogEntry
     {
         // TODO - representation of command for state machine

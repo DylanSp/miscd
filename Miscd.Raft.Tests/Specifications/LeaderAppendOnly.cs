@@ -38,7 +38,7 @@ namespace Miscd.Raft.Tests.Specifications
         {
             var logOverwrite = e as LogOverwrittenEvent;
 
-            Assert(!LeadersByTerm[logOverwrite.Term].Equals(logOverwrite.OverwritingServerId));
+            Assert(LeadersByTerm[logOverwrite.Term] != logOverwrite.OverwritingServerId);
         }
     }
 }
