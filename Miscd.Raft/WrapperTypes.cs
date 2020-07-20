@@ -1,5 +1,7 @@
 ﻿namespace Miscd.Raft
 {
+    // TODO implement ==, != for these
+
     public readonly struct Term
     {
         public int Value { get; }

@@ -23,7 +23,8 @@ namespace Miscd.Raft.Tests.Specifications
             typeof(RequestFromClientEvent),
             typeof(RespondToClientEvent),
             typeof(VoteRequestEvent),
-            typeof(VoteResponseEvent)
+            typeof(VoteResponseEvent),
+            typeof(LogOverwrittenEvent)
         )]
         private class Monitoring : State
         {
