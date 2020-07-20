@@ -1,7 +1,4 @@
 ﻿using Microsoft.Coyote;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Miscd.Raft.Events.DiagnosticEvents
 {

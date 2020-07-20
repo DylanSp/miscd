@@ -1,7 +1,4 @@
 ﻿using Microsoft.Coyote;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Miscd.Raft.Events.DiagnosticEvents
 {
@@ -9,12 +6,12 @@ namespace Miscd.Raft.Events.DiagnosticEvents
     {
         public LogEntry Entry { get; }
 
-        public Term Term { get; }
+        public RaftServerId ServerId { get; }
 
-        public LogEntryAppliedEvent(LogEntry entry, Term term)
+        public LogEntryAppliedEvent(LogEntry entry, RaftServerId serverId)
         {
             Entry = entry;
-            Term = term;
+            ServerId = serverId;
         }
     }
 }
