@@ -2,6 +2,7 @@
 using Microsoft.Coyote.Specifications;
 using Miscd.Raft.Events;
 using Miscd.Raft.Events.DiagnosticEvents;
+using System;
 using System.Linq;
 
 namespace Miscd.Raft.Tests.Specifications
@@ -30,7 +31,11 @@ namespace Miscd.Raft.Tests.Specifications
 
         private void RecordLogEntryApplication(Event e)
         {
-            var logEntryApplication = e as LogEntryAppliedEvent;
+            if (e is not LogEntryAppliedEvent logEntryApplication)
+            {
+                throw new Exception($"Incorrect event type passed to {nameof(RecordLogEntryApplication)} event handler in {nameof(StateMachineSafety)} monitor state");
+            }
+
             ClusterLogs.AppendToLog(logEntryApplication.ServerId, logEntryApplication.Entry);
 
             // check property

@@ -2,6 +2,7 @@
 using Microsoft.Coyote.Specifications;
 using Miscd.Raft.Events;
 using Miscd.Raft.Events.DiagnosticEvents;
+using System;
 using System.Collections.Generic;
 
 namespace Miscd.Raft.Tests.Specifications
@@ -30,13 +31,19 @@ namespace Miscd.Raft.Tests.Specifications
         // TODO - same as in LeaderCompleteness - provide some abstract class for monitors that track elections, which they inherit from?
         private void RecordLeaderElection(Event e)
         {
-            var election = e as LeaderElectedEvent;
+            if (e is not LeaderElectedEvent election)
+            {
+                throw new Exception($"Incorrect event type passed to {nameof(RecordLeaderElection)} event handler in {nameof(LeaderAppendOnly)} monitor state");
+            }
             LeadersByTerm[election.Term] = election.LeaderId;
         }
 
         private void CheckProperty(Event e)
         {
-            var logOverwrite = e as LogOverwrittenEvent;
+            if (e is not LogOverwrittenEvent logOverwrite)
+            {
+                throw new Exception($"Incorrect event type passed to {nameof(CheckProperty)} event handler in {nameof(LeaderAppendOnly)} monitor state");
+            }
 
             Assert(LeadersByTerm[logOverwrite.Term] != logOverwrite.OverwritingServerId);
         }

@@ -2,6 +2,7 @@
 using Microsoft.Coyote.Specifications;
 using Miscd.Raft.Events;
 using Miscd.Raft.Events.DiagnosticEvents;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -32,7 +33,10 @@ namespace Miscd.Raft.Tests.Specifications
 
         private void RecordLeaderElection(Event e)
         {
-            var election = e as LeaderElectedEvent;
+            if (e is not LeaderElectedEvent election)
+            {
+                throw new Exception($"Incorrect event type passed to {nameof(RecordLeaderElection)} event handler in {nameof(LeaderCompleteness)} monitor state");
+            }
             LeadersByTerm[election.Term] = election.LeaderId;
 
             // check property
@@ -52,7 +56,10 @@ namespace Miscd.Raft.Tests.Specifications
 
         private void RecordLogEntryApplication(Event e)
         {
-            var logEntryApplication = e as LogEntryAppliedEvent;
+            if (e is not LogEntryAppliedEvent logEntryApplication)
+            {
+                throw new Exception($"Incorrect event type passed to {nameof(RecordLogEntryApplication)} event handler in {nameof(LeaderCompleteness)} monitor state");
+            }
             ClusterLogs.AppendToLog(logEntryApplication.ServerId, logEntryApplication.Entry);
         }
     }

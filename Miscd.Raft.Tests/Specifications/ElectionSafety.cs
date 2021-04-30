@@ -2,6 +2,7 @@
 using Microsoft.Coyote.Specifications;
 using Miscd.Raft.Events;
 using Miscd.Raft.Events.DiagnosticEvents;
+using System;
 using System.Collections.Generic;
 
 namespace Miscd.Raft.Tests.Specifications
@@ -29,7 +30,10 @@ namespace Miscd.Raft.Tests.Specifications
 
         private void RecordLeaderElection(Event e)
         {
-            var election = e as LeaderElectedEvent;
+            if (e is not LeaderElectedEvent election)
+            {
+                throw new Exception($"Incorrect event type passed to {nameof(RecordLeaderElection)} event handler in {nameof(ElectionSafety)} monitor state");
+            }
 
             if (Elections.ContainsKey(election.Term) && Elections[election.Term] != election.LeaderId)
             {
