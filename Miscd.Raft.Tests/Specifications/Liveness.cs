@@ -47,6 +47,7 @@ namespace Miscd.Raft.Tests.Specifications
         )]
         private class ReceivedRequest : State
         {
+#pragma warning disable S125 // Sections of code should not be commented out
             // TODO check that sufficient # of replicas are up
             // TODO possibly check that leader is elected?
             /*
@@ -54,6 +55,7 @@ namespace Miscd.Raft.Tests.Specifications
              * "If the leader crashes, client requests will time out;
              * clients then try again with randomly-chosen servers
              */
+#pragma warning restore S125 // Sections of code should not be commented out
         }
     }
 }
