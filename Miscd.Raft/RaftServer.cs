@@ -70,8 +70,6 @@ namespace Miscd.Raft
 
         #region State machine states
 
-        // TODO - add timer, TimerElapsedEvent, handler(s) for that event
-
         [Start]
         [OnEntry(nameof(BecomeFollower))]
         [OnEventDoAction(typeof(VoteRequestEvent), nameof(RespondToVoteRequest))]
@@ -79,11 +77,13 @@ namespace Miscd.Raft
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsFollower))]
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
         [OnEventDoAction(typeof(RequestFromClientEvent), nameof(RedirectClientToLeader))]
+        [OnEventDoAction(typeof(ElectionTimeoutEvent), nameof(PossiblyBecomeCandidate))]
         [IgnoreEvents(
             typeof(RespondToClientEvent), // only orchestrator acts on these
             typeof(LeaderElectedEvent), // diagnostic
             typeof(LogEntryAppliedEvent), // diagnostic
-            typeof(LogOverwrittenEvent)  // diagnostic
+            typeof(LogOverwrittenEvent),  // diagnostic
+            typeof(HeartbeatElapsedEvent)   // leader-only
         )]
         private class Follower : State { }
         
@@ -92,12 +92,14 @@ namespace Miscd.Raft
         [OnEventDoAction(typeof(VoteResponseEvent), nameof(AcceptVoteResponse))]
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsCandidate))]
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
+        [OnEventDoAction(typeof(ElectionTimeoutEvent), nameof(RestartElection))]
         [IgnoreEvents(
             typeof(RequestFromClientEvent), // don't have a leader to redirect client to; ignore and have client retry
             typeof(RespondToClientEvent), // only orchestrator acts on these
             typeof(LeaderElectedEvent), // diagnostic
             typeof(LogEntryAppliedEvent), // diagnostic
-            typeof(LogOverwrittenEvent)  // diagnostic
+            typeof(LogOverwrittenEvent),  // diagnostic
+            typeof(HeartbeatElapsedEvent)   // leader-only
         )]  
         private class Candidate : State { }
         
@@ -107,11 +109,13 @@ namespace Miscd.Raft
         [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(UpdateLocalState))] // TODO - is this correct? do I need to resend event and accept entries as follower?
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(AcceptAppendEntriesResponse))]
         [OnEventDoAction(typeof(RequestFromClientEvent), nameof(RespondToClientRequest))]
+        [OnEventDoAction(typeof(HeartbeatElapsedEvent), nameof(SendIdleHeartbeats))]
         [IgnoreEvents(
             typeof(RespondToClientEvent), // only orchestrator acts on these
             typeof(LeaderElectedEvent), // diagnostic
             typeof(LogEntryAppliedEvent), // diagnostic
-            typeof(LogOverwrittenEvent)  // diagnostic
+            typeof(LogOverwrittenEvent),  // diagnostic
+            typeof(ElectionTimeoutEvent)    // doesn't apply to leader; assumes by default that it's been elected
         )]
         private class Leader : State { }
 
@@ -126,12 +130,12 @@ namespace Miscd.Raft
 
         private void BecomeCandidate(Event e)
         {
-            throw new NotImplementedException();
+            StartElection();
         }
 
         private void BecomeLeader(Event e)
         {
-            throw new NotImplementedException();
+            SendEmptyHeartbeatMessages();
         }
 
         // follow rules for RequestVote RPC -> Receiver implementation
@@ -183,6 +187,37 @@ namespace Miscd.Raft
             throw new NotImplementedException();
         }
 
+        // follow Rules for Servers -> Followers (bullet 2)
+        private void PossiblyBecomeCandidate(Event e)
+        {
+            // check if AppendEntries RPC has been received or vote granted; if not, become candidate
+            throw new NotImplementedException();
+        }
+
+        // follow Rules for Servers -> Candidates (bullet 4)
+        private void RestartElection(Event e)
+        {
+            StartElection();
+        }
+
+        // follow Rules for Servers -> Leaders (bullet 1, second part)
+        private void SendIdleHeartbeats(Event e)
+        {
+            SendEmptyHeartbeatMessages();
+        }
+
         #endregion
+
+        // TODO - signature may change
+        private void StartElection()
+        {
+            throw new NotImplementedException();
+        }
+
+        // TODO - signature may change
+        private void SendEmptyHeartbeatMessages()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
