@@ -4,7 +4,6 @@ using Miscd.Raft.Events;
 using Miscd.Raft.Events.DiagnosticEvents;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace Miscd.Raft
 {
@@ -26,10 +25,10 @@ namespace Miscd.Raft
         #region Volatile state for all states
 
         // index of highest log entry known to be committed (initialized to 0, increases monotonically)
-        private Index CommitIndex { get; set; } = new Index(0);
+        private LogIndex CommitIndex { get; set; } = new LogIndex(0);
 
         // index of highest log entry applied to machine (initialized to 0, increases monotonically)
-        private Index LastAppliedLogIndex { get; set; } = new Index(0);
+        private LogIndex LastAppliedLogIndex { get; set; } = new LogIndex(0);
 
         #endregion
 
