@@ -254,6 +254,8 @@ namespace Miscd.Raft
 
         private void StartElection()
         {
+            VotesReceived.Clear();
+
             CurrentTerm++;
             CandidateVotedFor = ServerId;
             // TODO reset election timer - how?
