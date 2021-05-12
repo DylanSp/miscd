@@ -21,6 +21,11 @@ namespace Miscd.Raft
             return !term1.Equals(term2);
         }
 
+        public static Term operator ++(Term oldTerm)
+        {
+            return new Term(oldTerm.Value + 1);
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is Term t &&

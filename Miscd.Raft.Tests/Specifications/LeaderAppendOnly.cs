@@ -16,11 +16,11 @@ namespace Miscd.Raft.Tests.Specifications
         [OnEventDoAction(typeof(LeaderElectedEvent), nameof(RecordLeaderElection))]
         [OnEventDoAction(typeof(LogOverwrittenEvent), nameof(CheckProperty))]
         [IgnoreEvents(
-            typeof(AppendEntriesRequestEvent),
+            typeof(ReceiveAppendEntriesRequestEvent),
             typeof(AppendEntriesResponseEvent),
             typeof(RequestFromClientEvent),
             typeof(RespondToClientEvent),
-            typeof(VoteRequestEvent),
+            typeof(ReceiveVoteRequestEvent),
             typeof(VoteResponseEvent),
             typeof(LogEntryAppliedEvent)
         )]

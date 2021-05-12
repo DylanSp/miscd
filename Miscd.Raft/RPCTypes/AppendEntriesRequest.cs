@@ -1,9 +1,8 @@
-﻿using Microsoft.Coyote;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Miscd.Raft.Events
+namespace Miscd.Raft.RPCTypes
 {
-    public class AppendEntriesRequestEvent : Event
+    public class AppendEntriesRequest
     {
         public Term Term { get; } // leader's term
         public RaftServerId LeaderId { get; } // so follower can redirect clients
@@ -12,7 +11,7 @@ namespace Miscd.Raft.Events
         public List<LogEntry> Entries { get; } // log entries to store (empty for heartbeat, may send more than one for efficiency)
         public LogIndex LeaderCommitIndex { get; } // leader's CommitIndex
 
-        public AppendEntriesRequestEvent(Term term, RaftServerId leaderId, LogIndex prevLogIndex, Term prevLogTerm, List<LogEntry> entries, LogIndex leaderCommitIndex)
+        public AppendEntriesRequest(Term term, RaftServerId leaderId, LogIndex prevLogIndex, Term prevLogTerm, List<LogEntry> entries, LogIndex leaderCommitIndex)
         {
             Term = term;
             LeaderId = leaderId;

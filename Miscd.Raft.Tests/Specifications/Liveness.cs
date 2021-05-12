@@ -21,9 +21,9 @@ namespace Miscd.Raft.Tests.Specifications
         [Cold]
         [OnEventGotoState(typeof(RequestFromClientEvent), typeof(ReceivedRequest))]
         [IgnoreEvents(
-            typeof(AppendEntriesRequestEvent),
+            typeof(ReceiveAppendEntriesRequestEvent),
             typeof(AppendEntriesResponseEvent),
-            typeof(VoteRequestEvent),
+            typeof(ReceiveVoteRequestEvent),
             typeof(VoteResponseEvent),
             typeof(LeaderElectedEvent),
             typeof(LogEntryAppliedEvent),
@@ -37,9 +37,9 @@ namespace Miscd.Raft.Tests.Specifications
         [Hot]
         [OnEventGotoState(typeof(RespondToClientEvent), typeof(WaitingForRequests))]
         [IgnoreEvents(
-            typeof(AppendEntriesRequestEvent),
+            typeof(ReceiveAppendEntriesRequestEvent),
             typeof(AppendEntriesResponseEvent),
-            typeof(VoteRequestEvent),
+            typeof(ReceiveVoteRequestEvent),
             typeof(VoteResponseEvent),
             typeof(LeaderElectedEvent),
             typeof(LogEntryAppliedEvent),

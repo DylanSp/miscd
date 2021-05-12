@@ -1,14 +1,43 @@
 ﻿using Microsoft.Coyote;
 using Microsoft.Coyote.Actors;
+using Microsoft.Coyote.Tasks;
 using Miscd.Raft.Events;
 using Miscd.Raft.Events.DiagnosticEvents;
+using Miscd.Raft.Interfaces;
+using Miscd.Raft.RPCTypes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Miscd.Raft
 {
     public class RaftServer : StateMachine
     {
+        // TODO how do these get assigned?
+        #region Implementation-specific state
+
+        private RaftServerId ServerId { get; set; } = new RaftServerId(string.Empty);
+
+        private List<RaftServerId> OtherServers { get; } = new List<RaftServerId>();
+
+        private int ClusterQuorum
+        {
+            get
+            {
+                var clusterSize = 1 + OtherServers.Count;
+                return clusterSize % 2 == 0
+                    ? (clusterSize / 2) + 1
+                    : (clusterSize + 1) / 2;
+            }
+        }
+
+        private IRpcClient RpcClient { get; set; }
+
+        private HashSet<RaftServerId> VotesReceived { get; } = new HashSet<RaftServerId>();
+
+        #endregion
+
         #region Persistent state
 
         // latest term server has seen (initialized to 0 on first boot, increases monotonically)
@@ -71,9 +100,9 @@ namespace Miscd.Raft
 
         [Start]
         [OnEntry(nameof(BecomeFollower))]
-        [OnEventDoAction(typeof(VoteRequestEvent), nameof(RespondToVoteRequest))]
+        [OnEventDoAction(typeof(ReceiveVoteRequestEvent), nameof(RespondToVoteRequest))]
         [OnEventDoAction(typeof(VoteResponseEvent), nameof(UpdateLocalState))] // not candidate, so don't transition states, just update local state
-        [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsFollower))]
+        [OnEventDoAction(typeof(ReceiveAppendEntriesRequestEvent), nameof(AcceptEntriesAsFollower))]
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
         [OnEventDoAction(typeof(RequestFromClientEvent), nameof(RedirectClientToLeader))]
         [OnEventDoAction(typeof(ElectionTimeoutEvent), nameof(PossiblyBecomeCandidate))]
@@ -87,9 +116,9 @@ namespace Miscd.Raft
         private class Follower : State { }
         
         [OnEntry(nameof(BecomeCandidate))]
-        [OnEventDoAction(typeof(VoteRequestEvent), nameof(RespondToVoteRequest))]
+        [OnEventDoAction(typeof(ReceiveVoteRequestEvent), nameof(RespondToVoteRequest))]
         [OnEventDoAction(typeof(VoteResponseEvent), nameof(AcceptVoteResponse))]
-        [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(AcceptEntriesAsCandidate))]
+        [OnEventDoAction(typeof(ReceiveAppendEntriesRequestEvent), nameof(AcceptEntriesAsCandidate))]
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(UpdateLocalState))] // not leader, so don't update log, just update local state
         [OnEventDoAction(typeof(ElectionTimeoutEvent), nameof(RestartElection))]
         [IgnoreEvents(
@@ -103,9 +132,9 @@ namespace Miscd.Raft
         private class Candidate : State { }
         
         [OnEntry(nameof(BecomeLeader))]
-        [OnEventDoAction(typeof(VoteRequestEvent), nameof(RespondToVoteRequest))]
+        [OnEventDoAction(typeof(ReceiveVoteRequestEvent), nameof(RespondToVoteRequest))]
         [OnEventDoAction(typeof(VoteResponseEvent), nameof(UpdateLocalState))] // not candidate, so don't transition states, just update local state
-        [OnEventDoAction(typeof(AppendEntriesRequestEvent), nameof(UpdateLocalState))] // TODO - is this correct? do I need to resend event and accept entries as follower?
+        [OnEventDoAction(typeof(ReceiveAppendEntriesRequestEvent), nameof(UpdateLocalState))] // TODO - is this correct? do I need to resend event and accept entries as follower?
         [OnEventDoAction(typeof(AppendEntriesResponseEvent), nameof(AcceptAppendEntriesResponse))]
         [OnEventDoAction(typeof(RequestFromClientEvent), nameof(RespondToClientRequest))]
         [OnEventDoAction(typeof(HeartbeatElapsedEvent), nameof(SendIdleHeartbeats))]
@@ -124,6 +153,7 @@ namespace Miscd.Raft
 
         private void BecomeFollower(Event e)
         {
+            // TODO is anything required here?
             throw new NotImplementedException();
         }
 
@@ -146,7 +176,22 @@ namespace Miscd.Raft
         // follow rules for Rules for Servers -> Candidates
         private void AcceptVoteResponse(Event e)
         {
-            throw new NotImplementedException();
+            var vre = (VoteResponseEvent)e;
+
+            // unsure about this, it's not explicit in Raft paper that I can see
+            if (vre.Term.Value > CurrentTerm.Value)
+            {
+                CurrentTerm = vre.Term;
+            }
+
+            if (vre.IsVoteGranted)
+            {
+                VotesReceived.Add(vre.RespondingServer);
+                if (VotesReceived.Count >= ClusterQuorum)
+                {
+                    RaiseGotoStateEvent<Leader>();
+                }
+            }
         }
 
         // follow Rules for Servers -> All Servers
@@ -207,10 +252,26 @@ namespace Miscd.Raft
 
         #endregion
 
-        // TODO - signature may change
         private void StartElection()
         {
-            throw new NotImplementedException();
+            CurrentTerm++;
+            CandidateVotedFor = ServerId;
+            // TODO reset election timer - how?
+
+            foreach (var otherServer in OtherServers)
+            {
+                // intentionally don't await; send all these in parallel
+                Task.Run(async () =>
+                {
+                    var lastLogIndex = new LogIndex(Log.Count);
+                    var lastLogTerm = Log.Count == 0 ? new Term(0) : Log.Last().TermReceived;
+                    var response = await RpcClient.RequestVoteAsync(new VoteRequest(CurrentTerm, ServerId, lastLogIndex, lastLogTerm));
+                    if (response != null)
+                    {
+                        RaiseEvent(new VoteResponseEvent(response.Term, response.IsVoteGranted, otherServer));
+                    }
+                });
+            }
         }
 
         // TODO - signature may change
